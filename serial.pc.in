@@ -1,0 +1,10 @@
+libdir=@CONF_LIBRARY_DIR@
+includedir=@CONF_INCLUDE_DIR@
+libraries=@CONF_LIBRARIES@
+
+Name: @PROJECT_NAME@
+Description: @serial_DESCRIPTION@
+URL: @serial_URL@
+Version: @serial_VERSION@
+Libs: -L${libdir} -l${libraries}
+Cflags: -I${includedir}

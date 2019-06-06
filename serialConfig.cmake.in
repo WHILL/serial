@@ -1,0 +1,4 @@
+# - Config file for the libuvc package
+set(serial_INCLUDE_DIRS "@CONF_INCLUDE_DIR@")
+set(serial_LIBRARY_DIRS "@CONF_LIBRARY_DIR@")
+set(serial_LIBRARIES "@CONF_LIBRARIES@")
