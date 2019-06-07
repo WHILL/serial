@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.2)
 project(serial)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -27,15 +27,13 @@ if(APPLE)
     find_library(FOUNDATION_LIBRARY Foundation)
 endif()
 
-if(UNIX AND NOT APPLE)
-    find_library(rt_LIBRARY rt)
-    find_library(pthread_LIBRARY pthread)
-else()
-    # Otherwise normal call
-endif()
-
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+## Public headers
+set(serial_INCLUDES
+    include/serial/serial.h
+    include/serial/v8stdint.h
+)
 
 ## Sources
 set(serial_SRCS
@@ -77,7 +75,7 @@ if(BUILD_SERIAL_SHARED)
     if(APPLE)
         target_link_libraries(${PROJECT_NAME} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
     elseif(UNIX)
-        target_link_libraries(${PROJECT_NAME} ${rt_LIBRARY} ${pthread_LIBRARY})
+        target_link_libraries(${PROJECT_NAME} rt pthread)
     else()
         target_link_libraries(${PROJECT_NAME} setupapi)
     endif()
@@ -97,6 +95,12 @@ if(BUILD_SERIAL_STATIC)
     endif()
 endif()
 
+foreach (target_name ${${PROJECT_NAME}_TARGETS})
+    set_target_properties(${target_name} PROPERTIES
+        PUBLIC_HEADER "${serial_INCLUDES}"
+        )
+endforeach()
+
 
 ## Uncomment for example
 if(BUILD_EXAMPLE)
@@ -114,7 +118,6 @@ endif()
 set(CONF_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 set(CONF_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}")
 set(CONF_LIBRARIES   "${CONF_LIBRARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}serial${CMAKE_SHARED_LIBRARY_SUFFIX}")
-configure_file(${PROJECT_NAME}Config.cmake.in ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake @ONLY)
 configure_file(${PROJECT_NAME}.pc.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
 
 message(STATUS "Targets will be installed...")
@@ -128,11 +131,8 @@ install(TARGETS ${${PROJECT_NAME}_TARGETS}
         PUBLIC_HEADER DESTINATION "include/${PROJECT_NAME}"
 )
 
-install(DIRECTORY include/serial/
-    DESTINATION "include/${PROJECT_NAME}"
-)
-
-install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+install(EXPORT ${PROJECT_NAME}-export
+    FILE "${PROJECT_NAME}Config.cmake"
     DESTINATION "lib/cmake/${PROJECT_NAME}"
 )
 
